@@ -1,78 +1,17 @@
-// PREGUNTAS SOBRE SAN JOSÉ DE CALASANZ
-
-const preguntas = [
-    {
-        pregunta: "¿En qué año nació San José de Calasanz?",
-        opciones: ["1557", "1648", "1597"],
-        correcta: 0,
-        explicacion: "Nació en 1557, en Peralta de la Sal, España."
-    },
-    {
-        pregunta: "¿En qué país nació?",
-        opciones: ["Italia", "España", "Francia"],
-        correcta: 1,
-        explicacion: "Nació en Peralta de la Sal, España."
-    },
-    {
-        pregunta: "¿En qué año fue ordenado sacerdote?",
-        opciones: ["1592", "1617", "1583"],
-        correcta: 2,
-        explicacion: "Fue ordenado sacerdote el 17 de diciembre de 1583."
-    },
-    {
-        pregunta: "¿A qué ciudad viajó en 1592?",
-        opciones: ["Roma", "Madrid", "París"],
-        correcta: 0,
-        explicacion: "Viajó a Roma, donde descubrió las necesidades educativas de los niños pobres."
-    },
-    {
-        pregunta: "¿Qué hizo en 1597?",
-        opciones: [
-            "Fue nombrado obispo",
-            "Abrió una escuela gratuita para niños pobres",
-            "Regresó a España"
-        ],
-        correcta: 1,
-        explicacion: "En 1597 impulsó una escuela gratuita en Santa Dorotea, en Roma."
-    },
-    {
-        pregunta: "¿Qué institución religiosa fundó?",
-        opciones: ["Los Franciscanos", "Los Jesuitas", "Las Escuelas Pías"],
-        correcta: 2,
-        explicacion: "Fundó las Escuelas Pías, origen de la Orden de los Escolapios."
-    },
-    {
-        pregunta: "¿Cuál era su lema educativo?",
-        opciones: ["Piedad y Letras", "Fe y Trabajo", "Ciencia y Progreso"],
-        correcta: 0,
-        explicacion: "Su lema era Piedad y Letras."
-    },
-    {
-        pregunta: "¿En qué año falleció?",
-        opciones: ["1557", "1648", "1617"],
-        correcta: 1,
-        explicacion: "Falleció en Roma el 25 de agosto de 1648."
-    }
-];
-
-
 // ELEMENTOS DEL HTML
 
 const formulario = document.getElementById("formulario-quiz");
-const preguntaTexto = document.getElementById("pregunta-texto");
-const opcionesContenedor = document.getElementById("opciones-quiz");
+const preguntas = document.querySelectorAll(".pregunta-quiz");
 const progreso = document.getElementById("progreso-quiz");
 const botonSiguiente = document.getElementById("siguiente-quiz");
 const resultado = document.getElementById("resultado-quiz");
 const botonReiniciar = document.getElementById("reiniciar-quiz");
-
 
 // VARIABLES
 
 let preguntaActual = 0;
 let puntaje = 0;
 let respondida = false;
-let botonesOpciones = [];
 
 
 // FUNCIÓN PARA MOSTRAR LAS PREGUNTAS
@@ -81,18 +20,19 @@ function mostrarPregunta() {
 
     respondida = false;
 
-    const pregunta = preguntas[preguntaActual];
+    // OCULTAR TODAS LAS PREGUNTAS
 
-    preguntaTexto.textContent =
-        (preguntaActual + 1) + ". " + pregunta.pregunta;
+    for (let i = 0; i < preguntas.length; i++) {
+        preguntas[i].hidden = true;
+    }
+
+    // MOSTRAR LA PREGUNTA ACTUAL
+
+    preguntas[preguntaActual].hidden = false;
 
     progreso.textContent =
         "Pregunta " + (preguntaActual + 1) +
         " de " + preguntas.length;
-
-    opcionesContenedor.innerHTML = "";
-
-    botonesOpciones = [];
 
     botonSiguiente.disabled = true;
 
@@ -102,30 +42,31 @@ function mostrarPregunta() {
         botonSiguiente.textContent = "Siguiente pregunta";
     }
 
-    // BUCLE PARA CREAR LAS OPCIONES
+    // ACTIVAR LOS BOTONES DE OPCIONES
 
-    for (let i = 0; i < pregunta.opciones.length; i++) {
+    const opciones = preguntas[preguntaActual].querySelectorAll(".opcion-quiz");
 
-        const boton = document.createElement("button");
+    for (let i = 0; i < opciones.length; i++) {
 
-        boton.type = "button";
-        boton.className = "opcion-quiz";
-        boton.textContent = pregunta.opciones[i];
+        opciones[i].disabled = false;
+        opciones[i].classList.remove("correcta");
+        opciones[i].classList.remove("incorrecta");
+    }
 
-        boton.addEventListener("click", function() {
-            comprobarRespuesta(i);
-        });
+    // ELIMINAR LA EXPLICACIÓN ANTERIOR
 
-        opcionesContenedor.appendChild(boton);
+    const explicacionAnterior =
+        preguntas[preguntaActual].querySelector(".explicacion-quiz");
 
-        botonesOpciones.push(boton);
+    if (explicacionAnterior != null) {
+        explicacionAnterior.remove();
     }
 }
 
 
 // FUNCIÓN PARA COMPROBAR LAS RESPUESTAS
 
-function comprobarRespuesta(indiceElegido) {
+function comprobarRespuesta(botonElegido) {
 
     if (respondida == true) {
         return;
@@ -134,12 +75,17 @@ function comprobarRespuesta(indiceElegido) {
     respondida = true;
 
     const pregunta = preguntas[preguntaActual];
+    const opciones = pregunta.querySelectorAll(".opcion-quiz");
 
-    // BUCLE PARA DESACTIVAR LAS OPCIONES
+    // DESACTIVAR LOS BOTONES
 
-    for (let i = 0; i < botonesOpciones.length; i++) {
+    for (let i = 0; i < opciones.length; i++) {
 
-        botonesOpciones[i].disabled = true;
+        opciones[i].disabled = true;
+
+        if (opciones[i].dataset.correcta == "true") {
+            opciones[i].classList.add("correcta");
+        }
     }
 
     // COMPROBAR SI LA RESPUESTA ES CORRECTA
@@ -148,20 +94,22 @@ function comprobarRespuesta(indiceElegido) {
 
     mensaje.className = "explicacion-quiz";
 
-    if (indiceElegido == pregunta.correcta) {
+    if (botonElegido.dataset.correcta == "true") {
 
         puntaje++;
 
         mensaje.textContent =
-            "¡Correcto! " + pregunta.explicacion;
+            "¡Correcto! " + pregunta.dataset.explicacion;
 
     } else {
 
+        botonElegido.classList.add("incorrecta");
+
         mensaje.textContent =
-            "Respuesta incorrecta. " + pregunta.explicacion;
+            "Respuesta incorrecta. " + pregunta.dataset.explicacion;
     }
 
-    opcionesContenedor.appendChild(mensaje);
+    pregunta.appendChild(mensaje);
 
     botonSiguiente.disabled = false;
 }
@@ -172,15 +120,12 @@ function comprobarRespuesta(indiceElegido) {
 function mostrarResultado() {
 
     formulario.hidden = true;
-
     resultado.hidden = false;
-
     botonReiniciar.hidden = false;
 
     resultado.innerHTML = "";
 
     const titulo = document.createElement("h3");
-
     titulo.textContent = "¡Terminaste el cuestionario!";
 
     const puntajeTexto = document.createElement("p");
@@ -211,6 +156,23 @@ function mostrarResultado() {
     resultado.appendChild(titulo);
     resultado.appendChild(puntajeTexto);
     resultado.appendChild(mensaje);
+
+    resultado.focus();
+}
+
+
+// EVENTOS DE LOS BOTONES DE RESPUESTA
+
+for (let i = 0; i < preguntas.length; i++) {
+
+    const opciones = preguntas[i].querySelectorAll(".opcion-quiz");
+
+    for (let j = 0; j < opciones.length; j++) {
+
+        opciones[j].addEventListener("click", function() {
+            comprobarRespuesta(opciones[j]);
+        });
+    }
 }
 
 
@@ -239,21 +201,28 @@ botonSiguiente.addEventListener("click", function() {
 botonReiniciar.addEventListener("click", function() {
 
     preguntaActual = 0;
-
     puntaje = 0;
 
     resultado.hidden = true;
-
     botonReiniciar.hidden = true;
-
     formulario.hidden = false;
+
+    // ELIMINAR LAS EXPLICACIONES ANTERIORES
+
+    for (let i = 0; i < preguntas.length; i++) {
+
+        const explicacion =
+            preguntas[i].querySelector(".explicacion-quiz");
+
+        if (explicacion != null) {
+            explicacion.remove();
+        }
+    }
 
     mostrarPregunta();
 });
 
 
 // INICIAR EL CUESTIONARIO
-
-botonReiniciar.hidden = true;
 
 mostrarPregunta();
